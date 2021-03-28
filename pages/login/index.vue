@@ -12,22 +12,30 @@
           </p>
 
           <ul class="error-messages">
-            <li>That email is already taken</li>
+            <template v-for="(messages, field) in errors">
+              <li v-for="(message, index) in messages" :key="index">
+                {{ field }} {{ message }}
+              </li>
+            </template>
           </ul>
 
-          <form>
+          <form @submit.prevent="onSubmit">
             <fieldset v-if="!isLogin" class="form-group">
               <input
                 class="form-control form-control-lg"
                 type="text"
                 placeholder="Your Name"
+                required
+                v-model="user.username"
               />
             </fieldset>
             <fieldset class="form-group">
               <input
                 class="form-control form-control-lg"
-                type="text"
+                type="email"
                 placeholder="Email"
+                v-model="user.email"
+                required
               />
             </fieldset>
             <fieldset class="form-group">
@@ -35,6 +43,9 @@
                 class="form-control form-control-lg"
                 type="password"
                 placeholder="Password"
+                v-model="user.password"
+                minlength="8"
+                required
               />
             </fieldset>
             <button class="btn btn-lg btn-primary pull-xs-right">
@@ -48,11 +59,44 @@
 </template>
 
 <script>
+import { login, register } from '@/api/user';
+
+// 仅在客户端加载 js-cookie 包
+const Cookie = process.client ? require('js-cookie') : undefined;
+
 export default {
   name: 'Login',
+  middleware: 'notAuthenticated',
   computed: {
     isLogin() {
       return this.$route.name === 'login';
+    },
+  },
+  data() {
+    return {
+      user: {
+        username: '',
+        email: '',
+        password: '',
+      },
+      errors: {}, // 错误信息
+    };
+  },
+  methods: {
+    async onSubmit() {
+      try {
+        const { data } = this.isLogin
+          ? await login({ user: this.user })
+          : await register({ user: this.user });
+        // 存储用户登录状态
+        this.$store.commit('setUser', data.user);
+        // 登录状态持久化
+        Cookie.set('user', data.user);
+        this.$router.push('/');
+      } catch (error) {
+        // console.dir(error);
+        this.errors = error.response.data.errors;
+      }
     },
   },
 };
