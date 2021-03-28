@@ -45,9 +45,9 @@ export const getComments = (slug) =>
   });
 
 // 发布文章
-export const createArticle = (params) =>
+export const createArticle = (data) =>
   request({
     method: 'POST',
     url: '/api/articles',
-    params,
+    data,
   });

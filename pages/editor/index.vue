@@ -20,6 +20,7 @@
                   class="form-control"
                   placeholder="What's this article about?"
                   v-model="article.description"
+                  required
                 />
               </fieldset>
               <fieldset class="form-group">
@@ -28,6 +29,7 @@
                   rows="8"
                   placeholder="Write your article (in markdown)"
                   v-model="article.body"
+                  required
                 ></textarea>
               </fieldset>
               <fieldset class="form-group">
@@ -86,13 +88,10 @@ export default {
     },
     async onPublish() {
       try {
-        console.log(112);
-        const { article } = await createArticle(
-          JSON.stringify({ article: this.article })
-        );
+        const { data } = await createArticle({ article: this.article });
         // 跳转详情页面
-        if (article.slug) {
-          this.$router.push(`/article/${article.slug}`);
+        if (data.article && data.article.slug) {
+          this.$router.push(`/article/${data.article.slug}`);
         }
       } catch (e) {
         console && console.error(e);
