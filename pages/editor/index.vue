@@ -67,7 +67,7 @@
 </template>
 
 <script>
-import { createArticle } from '@/api/article';
+import { createArticle, getArticle, updateArticle } from '@/api/article';
 export default {
   name: 'Editor',
   middleware: 'authenticated',
@@ -75,7 +75,22 @@ export default {
     return {
       article: { title: '', description: '', body: '', tagList: [] },
       tag: '',
+      edit: false,
+      slug: ''
     };
+  },
+  async mounted() {
+    const slug = this.$route.params.slug;
+    if (!slug) return
+    // 请求内容
+    const { data } = await getArticle(slug)
+    for (let item in this.article) {
+      if (item in data.article) {
+        this.article[item] = data.article[item]
+      }
+    }
+    this.edit = true
+    this.slug = slug
   },
   methods: {
     onTagEnter() {
@@ -88,7 +103,7 @@ export default {
     },
     async onPublish() {
       try {
-        const { data } = await createArticle({ article: this.article });
+        const { data } = this.edit ? await updateArticle(this.slug, { article: this.article }) : await createArticle({ article: this.article });
         // 跳转详情页面
         if (data.article && data.article.slug) {
           this.$router.push(`/article/${data.article.slug}`);

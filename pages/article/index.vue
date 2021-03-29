@@ -3,8 +3,8 @@
     <div class="banner">
       <div class="container">
         <h1>{{ article.title }}</h1>
-
-        <article-meta :article="article" />
+ 
+        <article-meta :article="article" :self='self' />
       </div>
     </div>
 
@@ -16,7 +16,7 @@
       <hr />
 
       <div class="article-actions">
-        <article-meta :article="article" />
+        <article-meta :article="article" :self='self' />
       </div>
 
       <div class="row">
@@ -30,11 +30,19 @@
 
 <script>
 import { getArticle } from '@/api/article';
+import { mapState } from 'vuex'
 import MarkdownIt from 'markdown-it';
 import ArticleMeta from './article-meta';
 import ArticleComment from './article-comment';
 export default {
   name: 'Article',
+  components: { ArticleMeta, ArticleComment },
+  computed: {
+    ...mapState(['user']),
+    self() {
+      return this.article.author.username === this.user.username
+    }
+  },
   async asyncData({ params }) {
     const { data } = await getArticle(params.slug);
     const { article } = data;
@@ -42,7 +50,6 @@ export default {
     article.body = md.render(article.body);
     return { article };
   },
-  components: { ArticleMeta, ArticleComment },
   head() {
     return {
       title: `${this.article.title} - RealWorld`,

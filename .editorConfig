@@ -1,0 +1,9 @@
+{
+  "editor.fontSize": 14,
+  "editor.tabSize": 2,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true
+  },
+  // 全局使用保存自动格式化功能，vue项目关闭此项
+  "editor.formatOnSave": true
+}

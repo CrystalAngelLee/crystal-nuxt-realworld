@@ -51,3 +51,18 @@ export const createArticle = (data) =>
     url: '/api/articles',
     data,
   });
+
+// 更新文章
+export const updateArticle = (slug, data) =>
+  request({
+    method: 'PUT',
+    url: `/api/articles/${slug}`,
+    data
+  });
+
+// 删除文章
+export const deleteArticle = (slug) =>
+  request({
+    method: 'DELETE',
+    url: `/api/articles/${slug}`,
+  });

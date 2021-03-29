@@ -13,3 +13,10 @@ export const register = (data) =>
     url: '/api/users',
     data,
   });
+
+export const updateUser = (data) =>
+  request({
+    method: 'PUT',
+    url: '/api/user',
+    data,
+  });
