@@ -16,13 +16,13 @@
                 <nuxt-link
                   class="nav-link"
                   :class="{
-                    active: tab === 'your_feed',
+                    active: tab === 'your_feed'
                   }"
                   :to="{
                     name: 'home',
                     query: {
-                      tab: 'your_feed',
-                    },
+                      tab: 'your_feed'
+                    }
                   }"
                   exact
                   >Your Feed</nuxt-link
@@ -32,13 +32,13 @@
                 <nuxt-link
                   class="nav-link"
                   :class="{
-                    active: tab === 'global_feed',
+                    active: tab === 'global_feed'
                   }"
                   :to="{
                     name: 'home',
                     query: {
-                      tab: 'global_feed',
-                    },
+                      tab: 'global_feed'
+                    }
                   }"
                   exact
                   >Global Feed</nuxt-link
@@ -48,14 +48,14 @@
                 <nuxt-link
                   class="nav-link"
                   :class="{
-                    active: tab === 'tag',
+                    active: tab === 'tag'
                   }"
                   :to="{
                     name: 'home',
                     query: {
                       tag,
-                      tab: 'tag',
-                    },
+                      tab: 'tag'
+                    }
                   }"
                   >#{{ tag }}</nuxt-link
                 >
@@ -67,64 +67,7 @@
             <div>No articles are here... yet.</div>
           </template>
           <template v-else>
-            <div
-              class="article-preview"
-              v-for="article in articles"
-              :key="article.slug"
-            >
-              <div class="article-meta">
-                <nuxt-link
-                  :to="{
-                    name: 'profile',
-                    params: {
-                      username: article.author.username,
-                    },
-                  }"
-                  ><img :src="article.author.image"
-                /></nuxt-link>
-                <div class="info">
-                  <nuxt-link
-                    class="author"
-                    :to="{
-                      name: 'profile',
-                      params: {
-                        username: article.author.username,
-                      },
-                    }"
-                    >{{ article.author.username }}</nuxt-link
-                  >
-                  <span class="date">{{
-                    article.createdAt | date('MMM DD, YYYY')
-                  }}</span>
-                </div>
-                <button
-                  class="btn btn-outline-primary btn-sm pull-xs-right"
-                  :class="{
-                    active: article.favorited,
-                  }"
-                  @click="onFavorite(article)"
-                  :disabled="article.favoriteDisabled"
-                >
-                  <i class="ion-heart"></i> {{ article.favoritesCount }}
-                </button>
-              </div>
-              <nuxt-link
-                class="preview-link"
-                :to="{
-                  name: 'article',
-                  params: {
-                    slug: article.slug,
-                  },
-                }"
-              >
-                <h1>
-                  {{ article.title }}
-                </h1>
-                <p>{{ article.description }}</p>
-                <span>Read more...</span>
-              </nuxt-link>
-            </div>
-
+            <article-preview :articles="articles" />
             <!-- 分页列表 -->
             <nav>
               <ul class="pagination">
@@ -141,8 +84,8 @@
                       query: {
                         page: item,
                         tag: $route.query.tag,
-                        tab,
-                      },
+                        tab
+                      }
                     }"
                     >{{ item }}</nuxt-link
                   >
@@ -163,8 +106,8 @@
                   name: 'home',
                   query: {
                     tag,
-                    tab: 'tag',
-                  },
+                    tab: 'tag'
+                  }
                 }"
                 class="tag-pill tag-default"
                 v-for="tag in tags"
@@ -181,69 +124,52 @@
 </template>
 
 <script>
-import {
-  getArticles,
-  getFeedArticles,
-  onFavorite,
-  onCancelFavorite,
-} from '@/api/article';
-import { getTags } from '@/api/tag';
-import { mapState } from 'vuex';
+import { getArticles, getFeedArticles } from '@/api/article'
+import { getTags } from '@/api/tag'
+import { mapState } from 'vuex'
+import ArticlePreview from '../article/article-preview'
 export default {
   name: 'Home',
   watchQuery: ['page', 'tag', 'tab'],
+  components: { ArticlePreview },
   async asyncData({ query }) {
-    const page = Number.parseInt(query.page || 1);
-    const limit = 2;
-    const { tab = 'global_feed', tag } = query;
-    const loadArticles = tab === 'global_feed' ? getArticles : getFeedArticles;
-    const [articleRes, tagsRes] = await Promise.all([
-      loadArticles({
+    const page = Number.parseInt(query.page || 1)
+    const limit = 2
+    const { tab = 'global_feed', tag } = query
+    const g_article = ['global_feed', 'tag']
+    const loadArticles = g_article.includes(tab) ? getArticles : getFeedArticles
+    try {
+      const [articleRes, tagsRes] = await Promise.all([
+        loadArticles({
+          limit,
+          offset: (page - 1) * limit,
+          tag
+        }),
+        getTags()
+      ])
+      const { articles, articlesCount } = articleRes.data
+      const { tags } = tagsRes.data
+
+      articles.forEach(article => (article.favoriteDisabled = false))
+
+      return {
+        articles,
+        articlesCount,
         limit,
-        offset: (page - 1) * limit,
-        tag,
-      }),
-      getTags(),
-    ]);
-    const { articles, articlesCount } = articleRes.data;
-    const { tags } = tagsRes.data;
-
-    articles.forEach((article) => (article.favoriteDisabled = false));
-
-    return {
-      articles,
-      articlesCount,
-      limit,
-      page,
-      tags,
-      tab,
-      tag,
-    };
+        page,
+        tags,
+        tab,
+        tag
+      }
+    } catch (err) {}
   },
   computed: {
     ...mapState(['user']),
     totalPage() {
-      return Math.ceil(this.articlesCount / this.limit);
-    },
-  },
-  methods: {
-    async onFavorite(article) {
-      article.favoriteDisabled = true;
-      if (article.favorited) {
-        // 取消赞
-        await onCancelFavorite(article.slug);
-        article.favorited = false;
-        article.favoritesCount -= 1;
-      } else {
-        // 赞
-        await onFavorite(article.slug);
-        article.favorited = true;
-        article.favoritesCount += 1;
-      }
-      article.favoriteDisabled = false;
-    },
-  },
-};
+      return Math.ceil(this.articlesCount / this.limit)
+    }
+  }
+}
 </script>
 
 <style lang="scss" scoped></style>

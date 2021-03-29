@@ -52,10 +52,10 @@
               </button>
             </fieldset>
           </form>
-<hr>
-          <button class="btn btn-outline-danger">
-          Or click here to logout.
-        </button>
+          <hr />
+          <button class="btn btn-outline-danger" @click="logout">
+            Or click here to logout.
+          </button>
         </div>
       </div>
     </div>
@@ -63,8 +63,9 @@
 </template>
 
 <script>
-import {mapState} from 'vuex'
-import {updateUser} from '@/api/user'
+import { mapState } from 'vuex'
+import { updateUser } from '@/api/user'
+const Cookie = process.client ? require('js-cookie') : undefined
 export default {
   name: 'Settings',
   middleware: 'authenticated',
@@ -73,18 +74,25 @@ export default {
   },
   methods: {
     async onSubmit() {
-      const {email, username, password, image, bio} = this.user
-      const params = {user: {email, username, password, image, bio}}
-      const {data} = await updateUser(params)
+      const { email, username, password, image, bio } = this.user
+      const params = { user: { email, username, password, image, bio } }
+      const { data } = await updateUser(params)
       this.$router.push({
-         name: 'profile',
+        name: 'profile',
         params: {
-          username: data.user.username,
-        },
-      });
+          username: data.user.username
+        }
+      })
+    },
+    logout() {
+      try {
+        Cookie.remove('auth')
+        this.$store.commit('setUser', null)
+        this.$router.push('/')
+      } catch (e) {}
     }
   }
-};
+}
 </script>
 
 <style lang="scss" scoped></style>

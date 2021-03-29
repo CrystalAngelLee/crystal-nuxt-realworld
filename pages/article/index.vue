@@ -3,8 +3,7 @@
     <div class="banner">
       <div class="container">
         <h1>{{ article.title }}</h1>
- 
-        <article-meta :article="article" :self='self' />
+        <article-meta :article="article" :self="self" />
       </div>
     </div>
 
@@ -16,7 +15,7 @@
       <hr />
 
       <div class="article-actions">
-        <article-meta :article="article" :self='self' />
+        <article-meta :article="article" :self="self" />
       </div>
 
       <div class="row">
@@ -29,26 +28,30 @@
 </template>
 
 <script>
-import { getArticle } from '@/api/article';
+import { getArticle } from '@/api/article'
 import { mapState } from 'vuex'
-import MarkdownIt from 'markdown-it';
-import ArticleMeta from './article-meta';
-import ArticleComment from './article-comment';
+import MarkdownIt from 'markdown-it'
+import ArticleMeta from './article-meta'
+import ArticleComment from './article-comment'
 export default {
   name: 'Article',
   components: { ArticleMeta, ArticleComment },
   computed: {
     ...mapState(['user']),
     self() {
-      return this.article.author.username === this.user.username
+      return false
+      // if (!this.user) return false
+      // return this.article.author.username === this.user.username
     }
   },
   async asyncData({ params }) {
-    const { data } = await getArticle(params.slug);
-    const { article } = data;
-    const md = new MarkdownIt();
-    article.body = md.render(article.body);
-    return { article };
+    try {
+      const { data } = await getArticle(params.slug)
+      const { article } = data
+      const md = new MarkdownIt()
+      article.body = md.render(article.body)
+      return { article }
+    } catch (error) {}
   },
   head() {
     return {
@@ -57,12 +60,12 @@ export default {
         {
           hid: 'description',
           name: 'description',
-          content: this.article.description,
-        },
-      ],
-    };
-  },
-};
+          content: this.article.description
+        }
+      ]
+    }
+  }
+}
 </script>
 
 <style lang="scss" scoped></style>
