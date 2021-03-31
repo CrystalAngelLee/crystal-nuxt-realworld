@@ -1,7 +1,7 @@
 {
   "apps": [
     {
-      "name": "RealWorld",
+      "name": "crystal-nuxt-realword",
       "script": "npm",
       "args": "start"
     }

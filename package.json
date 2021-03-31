@@ -1,7 +1,6 @@
 {
   "name": "crystal-nuxt-realword",
   "version": "1.0.0",
-  "main": "index.js",
   "license": "MIT",
   "scripts": {
     "dev": "nuxt",
