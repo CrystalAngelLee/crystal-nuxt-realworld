@@ -62,7 +62,6 @@ module.exports = {
   // 注册插件
   plugins: ['~/plugins/request.js', '~/plugins/dayjs.js'],
   server: {
-    port: 3306, // default: 3000
-    host: '127.0.0.1' // default: localhost
+    port: 3306 // default: 3000
   }
 }
